@@ -1,49 +1,97 @@
-from asyncio.windows_events import NULL
 import graphlib
-from queue import PriorityQueue
 from flask import *
+import sys
 
 app = Flask(__name__)
 
-#graph part
-class Graph:
-    def __init__(self, num_of_vertices):
-        self.v = num_of_vertices
-        self.edges = [[-1 for i in range(num_of_vertices)] for j in range(num_of_vertices)]
-        self.visited = []
+nodes = ["0", "1", "2", "3"]
+ 
+init_graph = {}
+for node in nodes:
+    init_graph[node] = {}
     
-    def add_edge(self, u, v, weight):
-        self.edges[u][v] = weight
-        self.edges[v][u] = weight
+init_graph["0"]["1"] = 3    
+init_graph["0"]["3"] = 3    
+init_graph["1"]["2"] = 3    
+init_graph["2"]["3"] = 2    
+init_graph["3"]["1"] = 7
+
+class Graph(object):
+    def __init__(self, nodes, init_graph):
+        self.nodes = nodes
+        self.graph = self.construct_graph(nodes, init_graph)
+        
+    def construct_graph(self, nodes, init_graph):
+        graph = {}
+        for node in nodes:
+            graph[node] = {}
+        
+        graph.update(init_graph)
+        
+        for node, edges in graph.items():
+            for adjacent_node, value in edges.items():
+                if graph[adjacent_node].get(node, False) == False:
+                    graph[adjacent_node][node] = value
+                    
+        return graph
     
-def dijkstra(graph, start_vertex):
-    D = {v:float('inf') for v in range(graph.v)}
-    D[start_vertex] = 0
+    def get_nodes(self):
+        return self.nodes
+    
+    def get_outgoing_edges(self, node):
+        connections = []
+        for out_node in self.nodes:
+            if self.graph[node].get(out_node, False) != False:
+                connections.append(out_node)
+        return connections
+    
+    def value(self, node1, node2):
+        return self.graph[node1][node2]
 
-    pq = PriorityQueue()
-    pq.put((0, start_vertex))
+def dijkstra_algorithm(graph, start_node):
+    unvisited_nodes = list(graph.get_nodes()) 
+    shortest_path = {}
+    previous_nodes = {}
+    max_value = sys.maxsize
+    for node in unvisited_nodes:
+        shortest_path[node] = max_value
+    shortest_path[start_node] = 0
+    
+    while unvisited_nodes:
+        current_min_node = None
+        for node in unvisited_nodes: 
+            if current_min_node == None:
+                current_min_node = node
+            elif shortest_path[node] < shortest_path[current_min_node]:
+                current_min_node = node
+                
+        neighbors = graph.get_outgoing_edges(current_min_node)
+        for neighbor in neighbors:
+            tentative_value = shortest_path[current_min_node] + graph.value(current_min_node, neighbor)
+            if tentative_value < shortest_path[neighbor]:
+                shortest_path[neighbor] = tentative_value
+                previous_nodes[neighbor] = current_min_node
+ 
+        unvisited_nodes.remove(current_min_node)
+    
+    return previous_nodes, shortest_path 
+    
+def print_result(previous_nodes, shortest_path, start_node, target_node):
+    path = []
+    node = target_node
+    
+    while node != start_node:
+        path.append(node)
+        node = previous_nodes[node]
+ 
+    path.append(start_node)
+    
+    print("Min value {}.".format(shortest_path[target_node]))
+    print(" -> ".join(reversed(path)))
 
-    while not pq.empty():
-        (dist, current_vertex) = pq.get()
-        graph.visited.append(current_vertex)
+    return "Min value {}.".format(shortest_path[target_node])+" & "+" -> ".join(reversed(path))
 
-        for neighbor in range(graph.v):
-            if graph.edges[current_vertex][neighbor] != -1:
-                distance = graph.edges[current_vertex][neighbor]
-                if neighbor not in graph.visited:
-                    old_cost = D[neighbor]
-                    new_cost = D[current_vertex] + distance
-                    if new_cost < old_cost:
-                        pq.put((new_cost, neighbor))
-                        D[neighbor] = new_cost
-    return D
 
-g = Graph(4)
-g.add_edge(0, 2, 3)
-g.add_edge(0, 3, 3)
-g.add_edge(1, 2, 3)
-g.add_edge(2, 3, 2)
-g.add_edge(3, 1, 7)
 
 @app.route("/")
 def index():
@@ -58,11 +106,12 @@ def saveDetails():
     if request.method == "POST":
         try:
             start = request.form["startingnode"]
+            desti = request.form["destinationnode"]
             print(start)
-            D = dijkstra(g, int(start))
-            msg = ""
-            for vertex in range(len(D)):
-                msg = msg + "Distance from vertex 0 to vertex"+str(vertex)+"is"+str(D[vertex]) 
+            print(desti)
+            graph = Graph(nodes, init_graph)
+            previous_nodes, shortest_path = dijkstra_algorithm(graph=graph, start_node=start)
+            msg = print_result(previous_nodes, shortest_path, start_node=start, target_node=desti)
         except:
             msg = "counldnt start"
         finally:
