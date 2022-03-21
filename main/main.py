@@ -4,17 +4,20 @@ import sys
 
 app = Flask(__name__)
 
-nodes = ["0", "1", "2", "3"]
+nodes = ["0", "1", "2", "3","4"]
  
 init_graph = {}
 for node in nodes:
     init_graph[node] = {}
     
 init_graph["0"]["1"] = 3    
-init_graph["0"]["3"] = 3    
-init_graph["1"]["2"] = 3    
+init_graph["0"]["3"] = 7
+init_graph["0"]["4"] = 8    
+init_graph["1"]["3"] = 4
+init_graph["1"]["2"] = 1    
 init_graph["2"]["3"] = 2    
-init_graph["3"]["1"] = 7
+init_graph["3"]["1"] = 4    
+init_graph["3"]["4"] = 3    
 
 class Graph(object):
     def __init__(self, nodes, init_graph):
@@ -65,7 +68,7 @@ def dijkstra_algorithm(graph, start_node):
             elif shortest_path[node] < shortest_path[current_min_node]:
                 current_min_node = node
                 
-        neighbors = graph.get_outgoing_edges(current_min_node)
+        neighbors = graph.get_outgoing_edges(current_min_node) 
         for neighbor in neighbors:
             tentative_value = shortest_path[current_min_node] + graph.value(current_min_node, neighbor)
             if tentative_value < shortest_path[neighbor]:
@@ -76,7 +79,7 @@ def dijkstra_algorithm(graph, start_node):
     
     return previous_nodes, shortest_path 
     
-def print_result(previous_nodes, shortest_path, start_node, target_node):
+def print_weight(previous_nodes, shortest_path, start_node, target_node):
     path = []
     node = target_node
     
@@ -87,19 +90,31 @@ def print_result(previous_nodes, shortest_path, start_node, target_node):
     path.append(start_node)
     
     print("Min value {}.".format(shortest_path[target_node]))
+   
+    return "Min value {} ".format(shortest_path[target_node])
+      
+def print_node(previous_nodes, shortest_path, start_node, target_node):
+    path = []
+    node = target_node
+    
+    while node != start_node:
+        path.append(node)
+        node = previous_nodes[node]
+ 
+    path.append(start_node)
+    
     print(" -> ".join(reversed(path)))
 
-    return "Min value {}.".format(shortest_path[target_node])+" & "+" -> ".join(reversed(path))
-
+    return " -> ".join(reversed(path))
 
 
 @app.route("/")
 def index():
      return render_template("index.html");
 
-@app.route("/start")
-def start():
-     return render_template("start.html");
+@app.route("/index2")
+def index2():
+     return render_template("index2.html");
 
 @app.route("/saveDetails", methods=["POST", "GET"])
 def saveDetails():
@@ -111,11 +126,13 @@ def saveDetails():
             print(desti)
             graph = Graph(nodes, init_graph)
             previous_nodes, shortest_path = dijkstra_algorithm(graph=graph, start_node=start)
-            msg = print_result(previous_nodes, shortest_path, start_node=start, target_node=desti)
+            msg = print_node(previous_nodes, shortest_path, start_node=start, target_node=desti)
+            msg1 = print_weight(previous_nodes, shortest_path, start_node=start, target_node=desti)
+                
         except:
-            msg = "counldnt start"
+            msg = "counldnt start or nodes dont exist"
         finally:
-            return render_template("suc.html", msg=msg)
+            return render_template("suc.html", msg=msg,msg1=msg1)
 
 
 if __name__ == "__main__":

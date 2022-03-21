@@ -1,21 +1,11 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>suc page</title>
-</head>
-<body>
-</body>
-</html>
-
-
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Output</title>
+  <title>Input</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -50,8 +40,8 @@
   <header id="header" class="fixed-top">
     <div class="container d-flex align-items-center justify-content-between">
 
-      <h1 class="logo"><a href="index.html">S2D</a></h1>
-      <!-- Uncomment below if you prefer to use an image logo -->
+        <h1 class="logo"><a href="index.html">S2D</a></h1>
+        <!-- Uncomment below if you prefer to use an image logo -->
       <!-- <a href="index.html" class="logo"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
 
       <nav id="navbar" class="navbar">
@@ -67,21 +57,23 @@
 
   <!-- ======= Hero Section ======= -->
   <section id="hero" class="d-flex align-items-center">
-    <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
+    <div class="container position-middle" data-aos="fade-up" data-aos-delay="100">
       <div class="row justify-content-center">
-        <div class="col-xl-7 col-lg-9 text-center">
-        <div type="allign-center">
-            <h3>{{msg}}</h3>   
-            <h3>{{msg1}}</h3>   
-            <br>
-            <img src = "{{ url_for('static',filename='img/graph.png')}}" width=400px align = "center" >
+        <div class="col-xl-8 col-lg-7 text-center">
+            <form action = "./saveDetails" method="post">
+                <table>
+                    <tr><td>Starting Node</td><td><input type="text" name="startingnode"></td></tr>
+                    <tr><td>Destination Node </td><td><input type="text" name="destinationnode"></td></tr>
+                    <tr><td><input class="btn-get-started scrollto" type="submit" value="Submit"></td></tr>
+                    <img src = "{{ url_for('static',filename='img/graph.png')}}" width=400px align = "right" >
   
-        </div>
+                </table>
+                </form>
+                
         </div>
       </div>
   <div id="preloader"></div>
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-
   <!-- Vendor JS Files -->
   <script src="{{ url_for('static',filename='vendor/purecounter/purecounter.js')}}"></script>
   <script src="{{ url_for('static',filename='vendor/aos/aos.js')}}"></script>
